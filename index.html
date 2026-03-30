@@ -992,16 +992,8 @@ document.getElementById('pdf-submit').addEventListener('click', async () => {
 
     loadingEl.textContent = '✦ 正在跳转付款...';
 
-    const resp = await fetch('/api/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cards, question, name }),
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || '创建支付失败');
-
-    // 跳转到 Waffo 付款页
-    window.location.href = data.url;
+    // 直接跳转到 Waffo 付款页
+    window.location.href = 'https://portal.waffo.ai/store/cyber-arcana-x03en28t/product/PROD_31SkmmzLGqge2T2RAH4vxW?type=onetime&currency=USD&test=true';
 
   } catch (err) {
     loadingEl.style.display = 'none';
