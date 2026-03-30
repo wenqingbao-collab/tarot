@@ -262,7 +262,7 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
     <div id="pdf-err"></div>
     <div id="pdf-btns">
       <button id="pdf-cancel">取消</button>
-      <button id="pdf-submit">✦ 生成报告</button>
+      <button id="pdf-submit">✦ 前往付款</button>
     </div>
     <div id="pdf-loading" style="display:none">正在召唤星象能量...</div>
     <div id="pdf-ok" style="display:none">
@@ -987,26 +987,22 @@ document.getElementById('pdf-submit').addEventListener('click', async () => {
       n: c.n, img: c.img, isReversed: c.isReversed, up: c.up, rev: c.rev,
     }));
 
-    // Step 1: 获取 AI 解读
-    loadingEl.textContent = '✦ 正在召唤星象能量...';
-    const resp = await fetch('/api/generate-report', {
+    // 保存到 sessionStorage，付款后返回使用
+    sessionStorage.setItem('tarot_reading', JSON.stringify({ cards, question, name }));
+
+    loadingEl.textContent = '✦ 正在跳转付款...';
+
+    const resp = await fetch('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cards, question, name }),
     });
-    const contentType = resp.headers.get('content-type') || '';
-    if (!resp.ok) {
-      const msg = contentType.includes('json') ? (await resp.json()).error : `服务器错误 ${resp.status}，请稍后重试`;
-      throw new Error(msg);
-    }
     const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '创建支付失败');
 
-    // Step 2: 浏览器端生成 PDF
-    loadingEl.textContent = '✦ 正在绘制命运之书...';
-    await generatePDF(cards, question, name, data.interpretation);
+    // 跳转到 Waffo 付款页
+    window.location.href = data.url;
 
-    loadingEl.style.display = 'none';
-    document.getElementById('pdf-ok').style.display = 'block';
   } catch (err) {
     loadingEl.style.display = 'none';
     document.getElementById('pdf-btns').style.display = 'flex';
@@ -1081,7 +1077,48 @@ async function generatePDF(cards, question, name, interpretation) {
   pdf.save('塔罗命运解读报告.pdf');
 }
 
+// ── 付款成功后自动生成 PDF ──
+async function handlePostPayment() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.get('paid')) return;
+
+  // 清除 URL 参数
+  window.history.replaceState({}, '', window.location.pathname);
+
+  const saved = sessionStorage.getItem('tarot_reading');
+  if (!saved) return;
+  const { cards, question, name } = JSON.parse(saved);
+  sessionStorage.removeItem('tarot_reading');
+
+  // 显示生成中提示
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);color:#d4af37;padding:14px 28px;border-radius:4px;font-size:.75rem;letter-spacing:3px;z-index:999;';
+  toast.textContent = '✦ 付款成功，正在生成报告...';
+  document.body.appendChild(toast);
+
+  try {
+    const resp = await fetch('/api/generate-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards, question, name }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    toast.textContent = '✦ 正在绘制命运之书...';
+    await generatePDF(cards, question, name, data.interpretation);
+    toast.textContent = '✦ 报告已下载完成';
+    setTimeout(() => toast.remove(), 3000);
+  } catch (err) {
+    toast.style.color = '#ff6b6b';
+    toast.textContent = '生成失败：' + (err.message || '请刷新重试');
+    setTimeout(() => toast.remove(), 5000);
+  }
+}
+
 tick();initCamera();
+// 等页面完全加载后检测付款回调
+window.addEventListener('load', handlePostPayment);
 }
 </script>
 </body>

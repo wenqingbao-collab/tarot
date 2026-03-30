@@ -2,6 +2,7 @@
   "name": "tarot",
   "version": "1.0.0",
   "dependencies": {
-    "openai": "^4.47.0"
+    "openai": "^4.47.0",
+    "@waffo/pancake-ts": "latest"
   }
 }
