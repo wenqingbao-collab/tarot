@@ -43,10 +43,10 @@ module.exports = async function handler(req, res) {
     // 本次占卜的唯一 ID：既作为回跳关联，也作为报告在 KV 里的 key
     const rid = 'rd_' + crypto.randomBytes(16).toString('hex');
 
-    // 只把 AI 生成报告需要的字段放进 metadata（不含图片，避免超长）。
+    // 放进 metadata 的字段：AI 生成 + 邮件排版所需（含图片 URL）。
     // metadata 的值必须是字符串（SDK 类型 Record<string,string>）。
     const readingForAI = cards.slice(0, 3).map(c => ({
-      n: c.n, isReversed: !!c.isReversed, up: c.up, rev: c.rev,
+      n: c.n, isReversed: !!c.isReversed, up: c.up, rev: c.rev, img: c.img,
     }));
 
     const origin = req.headers.origin === ALLOWED_ORIGIN ? req.headers.origin : ALLOWED_ORIGIN;

@@ -1,6 +1,7 @@
 const { verifyWebhook, WebhookEventType } = require('@waffo/pancake-ts');
 const OpenAI = require('openai');
 const kv = require('../lib/kv');
+const { sendReportEmail } = require('../lib/email');
 
 // Webhook 必须读原始请求体来验签，关闭 Vercel 默认的 body 解析
 module.exports.config = { api: { bodyParser: false } };
@@ -88,6 +89,16 @@ module.exports = async function handler(req, res) {
       await kv.setEx(`report:${rid}`, JSON.stringify({
         interpretation, cards, question, name,
       }), 604800);
+
+      // 额外把报告发到买家邮箱（best-effort：失败不影响付款/下载）
+      try {
+        const buyerEmail = event.data.buyerEmail;
+        const r = await sendReportEmail(buyerEmail, { cards, question, name, interpretation });
+        if (r && r.skipped) console.log('report email skipped:', r.reason);
+        else console.log('report email sent to', buyerEmail);
+      } catch (mailErr) {
+        console.error('发送报告邮件失败(不影响下载):', mailErr.message);
+      }
     }
 
     return res.status(200).send('OK');
