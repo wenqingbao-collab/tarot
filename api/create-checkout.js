@@ -53,6 +53,10 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ url: session.checkoutUrl, rid });
   } catch (err) {
     console.error('create-checkout error:', err);
-    return res.status(500).json({ error: '创建支付失败，请稍后重试' });
+    // 临时调试：把真实错误暴露到响应里，定位后删除
+    return res.status(500).json({
+      error: '创建支付失败，请稍后重试',
+      _debug: { message: err && err.message, status: err && err.status, errors: err && err.errors },
+    });
   }
 };
