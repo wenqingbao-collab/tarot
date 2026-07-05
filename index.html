@@ -987,13 +987,22 @@ document.getElementById('pdf-submit').addEventListener('click', async () => {
       n: c.n, img: c.img, isReversed: c.isReversed, up: c.up, rev: c.rev,
     }));
 
-    // 保存到 sessionStorage，付款后返回使用
-    sessionStorage.setItem('tarot_reading', JSON.stringify({ cards, question, name }));
+    loadingEl.textContent = '✦ 正在创建订单...';
+
+    // 调后端创建 Waffo checkout 会话（后端会把牌面写进订单 metadata）
+    const r = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards, question, name }),
+    });
+    const { url, rid, error } = await r.json();
+    if (!url || !rid) throw new Error(error || '创建支付失败');
+
+    // 保存到 sessionStorage：付款回跳后用于生成 PDF（含牌面图片，metadata 里不带图）
+    sessionStorage.setItem('tarot_reading', JSON.stringify({ rid, cards, question, name }));
 
     loadingEl.textContent = '✦ 正在跳转付款...';
-
-    // 直接跳转到 Waffo 付款页
-    window.location.href = 'https://portal.waffo.ai/store/cyber-arcana-x03en28t/product/PROD_31SkmmzLGqge2T2RAH4vxW?type=onetime&currency=USD&test=true';
+    window.location.href = url; // 跳到 Waffo 返回的正式 checkout 页
 
   } catch (err) {
     loadingEl.style.display = 'none';
@@ -1072,14 +1081,15 @@ async function generatePDF(cards, question, name, interpretation) {
 // ── 付款成功后自动生成 PDF ──
 async function handlePostPayment() {
   const params = new URLSearchParams(window.location.search);
-  if (!params.get('paid')) return;
+  const rid = params.get('rid');
+  if (!rid) return;
 
   // 清除 URL 参数
   window.history.replaceState({}, '', window.location.pathname);
 
+  // 牌面图片留在 sessionStorage 里（用于 PDF）；解读文本由服务端付款后生成
   const saved = sessionStorage.getItem('tarot_reading');
-  if (!saved) return;
-  const { cards, question, name } = JSON.parse(saved);
+  const local = saved ? JSON.parse(saved) : null;
   sessionStorage.removeItem('tarot_reading');
 
   // 显示生成中提示
@@ -1089,13 +1099,22 @@ async function handlePostPayment() {
   document.body.appendChild(toast);
 
   try {
-    const resp = await fetch('/api/generate-report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cards, question, name }),
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error);
+    // 轮询取报告：webhook 验签+生成通常几秒内完成
+    let data = null;
+    for (let i = 0; i < 20; i++) {
+      const resp = await fetch(`/api/generate-report?rid=${encodeURIComponent(rid)}`);
+      if (resp.status === 202) { await new Promise(s => setTimeout(s, 2000)); continue; }
+      const j = await resp.json();
+      if (!resp.ok) throw new Error(j.error);
+      data = j;
+      break;
+    }
+    if (!data || !data.success) throw new Error('报告生成超时，请稍后在邮件中查看或联系客服');
+
+    // 优先用本地保存的牌面（含图片），拿不到就用服务端返回的（无图，PDF 仍含文字）
+    const cards = (local && local.cards) || data.cards;
+    const question = (local && local.question) || data.question;
+    const name = (local && local.name) || data.name;
 
     toast.textContent = '✦ 正在绘制命运之书...';
     await generatePDF(cards, question, name, data.interpretation);

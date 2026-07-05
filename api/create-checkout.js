@@ -1,14 +1,18 @@
 const { WaffoPancake } = require('@waffo/pancake-ts');
+const crypto = require('crypto');
+
+// 允许的前端来源（收紧 CORS，不再用 *）
+const ALLOWED_ORIGIN = process.env.SITE_ORIGIN || 'https://cyberarcana.org';
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { cards, question, name } = req.body;
-  if (!cards || !question) {
+  const { cards, question, name } = req.body || {};
+  if (!cards || cards.length < 3 || !question) {
     return res.status(400).json({ error: '缺少必要参数' });
   }
 
@@ -18,29 +22,36 @@ module.exports = async function handler(req, res) {
       privateKey: process.env.WAFFO_PRIVATE_KEY,
     });
 
-    const origin = req.headers.origin || 'https://cyberarcana.org';
+    // 本次占卜的唯一 ID：既作为回跳关联，也作为报告在 KV 里的 key
+    const rid = 'rd_' + crypto.randomBytes(16).toString('hex');
+
+    // 只把 AI 生成报告需要的字段放进 metadata（不含图片，避免超长）。
+    // metadata 的值必须是字符串（SDK 类型 Record<string,string>）。
+    const readingForAI = cards.slice(0, 3).map(c => ({
+      n: c.n, isReversed: !!c.isReversed, up: c.up, rev: c.rev,
+    }));
+
+    const origin = req.headers.origin === ALLOWED_ORIGIN ? req.headers.origin : ALLOWED_ORIGIN;
 
     const session = await client.checkout.createSession({
       productId: process.env.WAFFO_PRODUCT_ID,
-      successUrl: `${origin}?paid=1`,
-      cancelUrl: `${origin}`,
+      currency: 'USD',
+      // successUrl 没有平台占位符机制，rid 由我们自己拼进 URL
+      successUrl: `${origin}/?rid=${rid}`,
+      // rid 也写进业务外部 ID，webhook 里会原样带回（orderMerchantExternalId）
+      orderMerchantExternalId: rid,
       metadata: {
-        cards: JSON.stringify(cards.map(c => ({
-          n: c.n,
-          isReversed: c.isReversed,
-          up: c.up,
-          rev: c.rev,
-          img: c.img,
-        }))),
-        question,
-        name: name || '',
+        rid,
+        cards: JSON.stringify(readingForAI),
+        question: String(question),
+        name: String(name || ''),
       },
     });
 
-    return res.status(200).json({ url: session.url });
-
+    // 返回字段是 checkoutUrl（不是 url）
+    return res.status(200).json({ url: session.checkoutUrl, rid });
   } catch (err) {
     console.error('create-checkout error:', err);
-    return res.status(500).json({ error: err.message || '创建支付失败，请稍后重试' });
+    return res.status(500).json({ error: '创建支付失败，请稍后重试' });
   }
 };

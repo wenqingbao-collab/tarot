@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/generate-report.js": {
+    "api/webhook.js": {
       "maxDuration": 60
     }
   }
