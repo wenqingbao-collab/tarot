@@ -23,6 +23,11 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
 #intro-sub{font-family:'Noto Serif SC',serif;font-size:.82rem;letter-spacing:4px;color:#888;margin-bottom:6px;animation:introFadeIn 2s ease}
 #intro-sub2{font-family:'Noto Serif SC',serif;font-size:.72rem;letter-spacing:3px;color:#555;margin-bottom:52px;animation:introFadeIn 2.5s ease}
 @keyframes introFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+#intro-footer{position:absolute;bottom:22px;left:0;width:100%;text-align:center;z-index:3;font-family:'Noto Serif SC',serif;font-size:.68rem;letter-spacing:2px;color:#5a4f38;animation:introFadeIn 3.5s ease}
+#intro-footer a{color:#8a7a55;text-decoration:none;transition:color .3s}
+#intro-footer a:hover{color:#d4af37}
+#intro-footer .fdot{margin:0 8px;color:#4a3f28}
+#intro-footer .fcopy{color:#4a3f28}
 #intro-divider{width:280px;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.5),transparent);margin-bottom:52px;animation:introFadeIn 2s ease}
 #start-btn{position:relative;background:transparent;color:#d4af37;border:1px solid rgba(212,175,55,.6);padding:14px 52px;cursor:pointer;font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:6px;transition:all .4s;animation:introFadeIn 3s ease;overflow:hidden}
 #start-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(212,175,55,.08),transparent);transform:translateX(-100%);transition:transform .6s}
@@ -177,6 +182,13 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
     <div id="intro-divider"></div>
     <button id="start-btn">✦ 启动占卜 ✦</button>
     <div id="intro-hint">仅供娱乐 · 命由灵定 · 运在人为</div>
+  </div>
+  <div id="intro-footer">
+    <a href="/terms.html" target="_blank" rel="noopener">服务条款</a>
+    <span class="fdot">·</span>
+    <a href="/privacy.html" target="_blank" rel="noopener">隐私政策</a>
+    <span class="fdot">·</span>
+    <span class="fcopy">© 2026 ARCANA</span>
   </div>
 </div>
 <div id="loader">
