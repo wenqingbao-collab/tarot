@@ -70,22 +70,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ url: session.checkoutUrl, rid });
   } catch (err) {
     console.error('create-checkout error:', err);
-    // 临时调试：把真实错误暴露到响应里，定位后删除
-    const rawPk = process.env.WAFFO_PRIVATE_KEY || '';
-    return res.status(500).json({
-      error: '创建支付失败，请稍后重试',
-      _debug: {
-        message: err && err.message,
-        status: err && err.status,
-        errors: err && err.errors,
-        // 私钥安全指纹（不含密钥主体，仅暴露 PEM 头部/格式特征）
-        pkLen: rawPk.length,
-        pkHead: rawPk.slice(0, 30),
-        pkHasBegin: rawPk.includes('-----BEGIN'),
-        pkRealNewlines: (rawPk.match(/\n/g) || []).length,
-        pkLiteralBackslashN: rawPk.includes('\\n'),
-        pkQuoted: rawPk[0] === '"' || rawPk[0] === "'",
-      },
-    });
+    return res.status(500).json({ error: '创建支付失败，请稍后重试' });
   }
 };
