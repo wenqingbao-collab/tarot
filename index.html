@@ -137,7 +137,10 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
 #pdf-modal.visible{display:flex}
 #pdf-inner{background:#05000f;border:1px solid rgba(212,175,55,.4);padding:36px 32px;max-width:400px;width:90%;border-radius:4px;text-align:center}
 #pdf-inner h2{font-family:'Cinzel',serif;color:#d4af37;letter-spacing:4px;font-size:.95rem;margin-bottom:6px}
-.pdf-sub{font-size:.6rem;color:#555;letter-spacing:2px;margin-bottom:24px}
+.pdf-sub{font-size:.6rem;color:#555;letter-spacing:2px;margin-bottom:10px}
+.pdf-price{font-family:'Cinzel',serif;font-size:1.5rem;color:#d4af37;text-shadow:0 0 16px rgba(212,175,55,.35);letter-spacing:1px;margin-bottom:22px}
+.pdf-price .cur{font-size:.85rem;vertical-align:super;margin-right:1px}
+.pdf-price .once{display:block;font-family:'Noto Serif SC',serif;font-size:.56rem;color:#8a7a55;letter-spacing:2px;margin-top:6px}
 .pdf-field{margin-bottom:14px;text-align:left}
 .pdf-field label{display:block;font-size:.58rem;color:#777;letter-spacing:2px;margin-bottom:5px;text-transform:uppercase}
 .pdf-field input{width:100%;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.25);color:#e8d5a0;padding:9px 12px;font-size:.76rem;font-family:'Noto Serif SC',serif;outline:none;border-radius:2px;transition:border-color .2s}
@@ -184,7 +187,7 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
     <div id="intro-hint">仅供娱乐 · 命由灵定 · 运在人为</div>
   </div>
   <div id="intro-footer">
-    <a href="/pricing.html" target="_blank" rel="noopener">定价</a>
+    <a href="/pricing.html" target="_blank" rel="noopener">定价 US$9.90</a>
     <span class="fdot">·</span>
     <a href="/terms.html" target="_blank" rel="noopener">服务条款</a>
     <span class="fdot">·</span>
@@ -257,7 +260,7 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
     <div id="r-actions">
       <button class="r-btn" id="r-close-btn">✦ CLOSE ✦</button>
       <button class="r-btn" id="r-reshuffle-btn">🔀 RESHUFFLE · 重新洗牌</button>
-      <button class="r-btn" id="r-pdf-btn">📜 获取完整PDF报告</button>
+      <button class="r-btn" id="r-pdf-btn">📜 获取完整报告 · US$9.90</button>
     </div>
   </div>
 </div>
@@ -267,6 +270,7 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
   <div id="pdf-inner">
     <h2>✦ 获取命运解读报告 ✦</h2>
     <p class="pdf-sub">AI 深度解读 · 生成后直接下载</p>
+    <div class="pdf-price"><span class="cur">US$</span>9.90<span class="once">一次性付费 · 无订阅 · 报告即时生成</span></div>
     <div class="pdf-field">
       <label>你的问题 *</label>
       <input type="text" id="pdf-question" placeholder="你最想了解的事情..." maxlength="80">
@@ -278,7 +282,7 @@ body{overflow:hidden;background:#000;font-family:'Cinzel',serif;color:#d4af37}
     <div id="pdf-err"></div>
     <div id="pdf-btns">
       <button id="pdf-cancel">取消</button>
-      <button id="pdf-submit">✦ 前往付款</button>
+      <button id="pdf-submit">✦ 前往付款 · US$9.90</button>
     </div>
     <div id="pdf-loading" style="display:none">正在召唤星象能量...</div>
     <div id="pdf-ok" style="display:none">
