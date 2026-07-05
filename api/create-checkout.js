@@ -18,8 +18,9 @@ module.exports = async function handler(req, res) {
 
   try {
     const client = new WaffoPancake({
-      merchantId: process.env.WAFFO_MERCHANT_ID,
-      privateKey: process.env.WAFFO_PRIVATE_KEY,
+      // trim 掉复制粘贴时误带的首尾空白/换行（曾导致 Invalid merchantId ...\n）
+      merchantId: (process.env.WAFFO_MERCHANT_ID || '').trim(),
+      privateKey: (process.env.WAFFO_PRIVATE_KEY || '').trim(),
     });
 
     // 本次占卜的唯一 ID：既作为回跳关联，也作为报告在 KV 里的 key
@@ -34,7 +35,7 @@ module.exports = async function handler(req, res) {
     const origin = req.headers.origin === ALLOWED_ORIGIN ? req.headers.origin : ALLOWED_ORIGIN;
 
     const session = await client.checkout.createSession({
-      productId: process.env.WAFFO_PRODUCT_ID,
+      productId: (process.env.WAFFO_PRODUCT_ID || '').trim(),
       currency: 'USD',
       // successUrl 没有平台占位符机制，rid 由我们自己拼进 URL
       successUrl: `${origin}/?rid=${rid}`,

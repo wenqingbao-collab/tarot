@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
       }
 
       const ai = new OpenAI({
-        apiKey: process.env.DEEPSEEK_API_KEY,
+        apiKey: (process.env.DEEPSEEK_API_KEY || '').trim(),
         baseURL: 'https://api.deepseek.com',
       });
       const msg = await ai.chat.completions.create({
