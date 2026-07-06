@@ -46,7 +46,9 @@ module.exports = async function handler(req, res) {
     const raw = await readRaw(req);
     // 签名头名字以 Waffo 后台/文档为准，这里同时兼容两种常见写法
     const sig = req.headers['x-waffo-signature'] || req.headers['x-signature'];
-    event = verifyWebhook(raw, sig, { environment: 'test' }); // 上线改成 'prod'
+    // 不指定 environment：SDK 会自动尝试 test 与 prod 公钥（prod 优先），
+    // 因此 test / 生产两种模式的 webhook 都能验签，无需改代码。
+    event = verifyWebhook(raw, sig);
   } catch (err) {
     console.error('webhook 验签失败:', err.message);
     return res.status(401).send('Invalid signature');
